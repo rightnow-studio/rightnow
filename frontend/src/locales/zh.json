@@ -1,10 +1,10 @@
 {
   "app": {
-    "name": "此刻",
+    "name": "悬停",
     "tagline": "直接行动，无需等待"
   },
   "login": {
-    "title": "此刻",
+    "title": "悬停",
     "subtitle": "直接行动，无需等待",
     "email": "邮箱",
     "password": "密码",
@@ -14,7 +14,9 @@
     "hasAccount": "已有账号？"
   },
   "dispatch": {
-    "countdown": "{n}"
+    "countdown": "{n}",
+    "start": "开始",
+    "customTask": "添加自定义任务"
   },
   "mission": {
     "done": "完成了",
@@ -34,6 +36,20 @@
     "save": "保存并加入任务池",
     "hint": "保存后该任务将被纳入系统随机派发",
     "placeholder": "写下你要做的第一件事..."
+  },
+  "durations": {
+    "30": "30 秒",
+    "60": "1 分钟",
+    "120": "2 分钟",
+    "180": "3 分钟",
+    "300": "5 分钟"
+  },
+  "common": {
+    "back": "返回",
+    "error": "错误：{msg}",
+    "unknownError": "未知错误",
+    "second": "秒",
+    "minute": "分钟"
   },
   "categories": {
     "work": "工作启动",

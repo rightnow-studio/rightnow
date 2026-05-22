@@ -31,7 +31,7 @@ const mission = useMissionStore()
 
 const taskText = computed(() => {
   if (!mission.currentTask) return ''
-  return t(`task.${mission.currentTask.text_key}`)
+  return t(mission.currentTask.text_key)
 })
 
 const formattedTime = computed(() => {

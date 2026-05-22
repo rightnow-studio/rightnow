@@ -10,12 +10,13 @@ import en from './locales/en.json'
 
 const messages = { 'zh-CN': zh, 'zh': zh, 'en-US': en, 'en': en }
 
-const browserLang = navigator.language || 'zh-CN'
-const fallbackLocale = 'zh-CN'
+const browserLang = navigator.language || 'en'
+const locale = browserLang.toLowerCase().startsWith('zh') ? 'zh-CN' : 'en'
+const fallbackLocale = 'en'
 
 const i18n = createI18n({
   legacy: false,
-  locale: browserLang,
+  locale,
   fallbackLocale,
   messages,
 })

@@ -1,10 +1,10 @@
 {
   "app": {
-    "name": "Now",
+    "name": "Hover",
     "tagline": "Act now, no waiting"
   },
   "login": {
-    "title": "Now",
+    "title": "Hover",
     "subtitle": "Act now, no waiting",
     "email": "Email",
     "password": "Password",
@@ -14,7 +14,9 @@
     "hasAccount": "Already have an account?"
   },
   "dispatch": {
-    "countdown": "{n}"
+    "countdown": "{n}",
+    "start": "Start",
+    "customTask": "Add Custom Task"
   },
   "mission": {
     "done": "Done",
@@ -34,6 +36,20 @@
     "save": "Save to pool",
     "hint": "Saved tasks will be included in random dispatch",
     "placeholder": "Write the first thing you need to do..."
+  },
+  "durations": {
+    "30": "30 seconds",
+    "60": "1 minute",
+    "120": "2 minutes",
+    "180": "3 minutes",
+    "300": "5 minutes"
+  },
+  "common": {
+    "back": "Back",
+    "error": "Error: {msg}",
+    "unknownError": "Unknown error",
+    "second": "s",
+    "minute": " min"
   },
   "categories": {
     "work": "Work",

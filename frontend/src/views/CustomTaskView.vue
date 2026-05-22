@@ -5,11 +5,11 @@
     <input v-model="content" :placeholder="t('customTask.placeholder')" />
     <label>{{ t('customTask.duration') }}</label>
     <select v-model="duration">
-      <option :value="30">30 秒</option>
-      <option :value="60">1 分钟</option>
-      <option :value="120">2 分钟</option>
-      <option :value="180">3 分钟</option>
-      <option :value="300">5 分钟</option>
+      <option :value="30">{{ t('durations.30') }}</option>
+      <option :value="60">{{ t('durations.60') }}</option>
+      <option :value="120">{{ t('durations.120') }}</option>
+      <option :value="180">{{ t('durations.180') }}</option>
+      <option :value="300">{{ t('durations.300') }}</option>
     </select>
     <label>{{ t('customTask.category') }}</label>
     <select v-model="category">
@@ -21,7 +21,7 @@
     </select>
     <button class="btn-save" @click="handleSave">{{ t('customTask.save') }}</button>
     <p class="hint">{{ t('customTask.hint') }}</p>
-    <button class="btn-back" @click="router.push('/')">&larr; 返回</button>
+    <button class="btn-back" @click="router.push('/')">&larr; {{ t('common.back') }}</button>
   </div>
 </template>
 
@@ -48,7 +48,8 @@ async function handleSave() {
     })
     router.push('/')
   } catch (e) {
-    alert('Save failed: ' + ((e as any).response?.data?.error || 'unknown'))
+    const msg = (e as any).response?.data?.error || t('common.unknownError')
+    alert(t('common.error', { msg }))
   }
 }
 </script>

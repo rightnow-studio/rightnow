@@ -41,7 +41,8 @@ async function handleSubmit() {
     }
     router.push('/')
   } catch (e) {
-    alert('Failed: ' + (e as any).response?.data?.error || 'unknown error')
+    const msg = (e as any).response?.data?.error || t('common.unknownError')
+    alert(t('common.error', { msg }))
   }
 }
 </script>

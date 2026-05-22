@@ -20,9 +20,9 @@ const mission = useMissionStore()
 
 const taskSummary = computed(() => {
   if (!mission.currentTask) return ''
-  const text = t(`task.${mission.currentTask.text_key}`)
+  const text = t(mission.currentTask.text_key)
   const s = mission.currentTask.duration_seconds
-  const d = s < 60 ? `${s}秒` : `${Math.floor(s / 60)}分钟`
+  const d = s < 60 ? `${s}${t('common.second')}` : `${Math.floor(s / 60)}${t('common.minute')}`
   return `${text} — ${d}`
 })
 
