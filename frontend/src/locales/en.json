@@ -1,0 +1,77 @@
+{
+  "app": {
+    "name": "Now",
+    "tagline": "Act now, no waiting"
+  },
+  "login": {
+    "title": "Now",
+    "subtitle": "Act now, no waiting",
+    "email": "Email",
+    "password": "Password",
+    "login": "Sign In",
+    "register": "Sign Up",
+    "noAccount": "No account?",
+    "hasAccount": "Already have an account?"
+  },
+  "dispatch": {
+    "countdown": "{n}"
+  },
+  "mission": {
+    "done": "Done",
+    "skip": "Skip",
+    "paused": "Mission paused. Return to resume."
+  },
+  "victory": {
+    "title": "Done",
+    "next": "Next",
+    "end": "End"
+  },
+  "customTask": {
+    "title": "Add Custom Task",
+    "content": "Task content",
+    "duration": "Duration",
+    "category": "Category",
+    "save": "Save to pool",
+    "hint": "Saved tasks will be included in random dispatch",
+    "placeholder": "Write the first thing you need to do..."
+  },
+  "categories": {
+    "work": "Work",
+    "home": "Home",
+    "communication": "Communication",
+    "health": "Health",
+    "admin": "Admin"
+  },
+  "task": {
+    "open_first_desktop_file": "Open the first file on your desktop from the left",
+    "type_period_in_new_doc": "Create a blank document and type a single period",
+    "close_all_notifications": "Close all notification pop-ups on your computer",
+    "write_todays_date": "Write today's date on a piece of paper",
+    "mark_first_email_read": "Open your email and mark the first inbox email as read",
+    "move_three_files_to_folder": "Select three files on your desktop and drag them into a new folder",
+    "adjust_screen_brightness": "Increase or decrease your screen brightness by one level",
+    "close_first_browser_tab": "Close the first open tab in your browser",
+    "put_nearest_clothes_in_washer": "Put the piece of dirty clothing nearest to you into the washer",
+    "take_kitchen_trash_out": "Take the kitchen trash bag to the door",
+    "smooth_blanket_and_pillow": "Smooth out your blanket and arrange your pillow",
+    "pick_up_socks_to_basket": "Pick up the socks by your feet and put them in the laundry basket",
+    "lay_out_tomorrows_clothes": "Lay out one set of clothes for tomorrow on your bed",
+    "move_nearest_bowl_to_sink": "Take the bowl closest to your hand on the table to the sink",
+    "fold_snack_bag_into_drawer": "Fold the snack bag on the coffee table and put it in a drawer",
+    "pick_up_three_things_from_floor": "Pick up the three things nearest to you on the floor and put them away",
+    "send_period_to_first_contact": "Send a single period to the first contact in your address book",
+    "send_emoji_to_top_chat": "Open your chat app and send an emoji to the top pinned contact",
+    "find_first_A_contact": "Open your contacts and find the first person whose name starts with A",
+    "clear_all_red_badges": "Clear all red badge notifications on your phone",
+    "put_on_nearest_shoes_and_tiptoe": "Put on the pair of shoes nearest to you and stand on your tiptoes three times",
+    "stretch_arms_overhead_five_times": "Stand up and stretch your arms overhead five times",
+    "walk_to_nearest_window_look_out": "Walk to the nearest window and look outside for ten seconds",
+    "pour_water_and_drink_three_sips": "Pour a glass of water and take three sips",
+    "flip_phone_screen_down": "Flip your phone screen-down onto the table",
+    "close_eyes_count_breaths_to_five": "Close your eyes and count your breaths up to five",
+    "write_start_on_paper": "Write the word \"Start\" on a piece of paper",
+    "stack_top_three_papers": "Stack the top three pieces of paper on your desk neatly",
+    "take_out_and_put_back_cards": "Take all cards out of your wallet and put them back in",
+    "empty_bag_and_put_back": "Empty everything out of your bag and put it back in"
+  }
+}

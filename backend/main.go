@@ -1,0 +1,60 @@
+package main
+
+import (
+	"log"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"cike/internal/config"
+	"cike/internal/db"
+	"cike/internal/handlers"
+	"cike/internal/middleware"
+)
+
+func main() {
+	cfg := config.Load()
+
+	database, err := db.Init(cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("failed to init db: %v", err)
+	}
+
+	r := gin.Default()
+	r.Use(corsMiddleware())
+
+	api := r.Group("/api")
+	{
+		api.POST("/auth/register", handlers.Register(database))
+		api.POST("/auth/login", handlers.Login(database))
+		api.POST("/auth/refresh", handlers.RefreshToken(database))
+
+		authorized := api.Group("/")
+		authorized.Use(middleware.JWTAuth(cfg.JWTSecret))
+		{
+			authorized.GET("/dispatch", handlers.DispatchTask(database))
+			authorized.GET("/tasks", handlers.ListTasks(database))
+			authorized.POST("/tasks", handlers.CreateTask(database))
+			authorized.PATCH("/tasks/:id", handlers.UpdateTask(database))
+			authorized.DELETE("/tasks/:id", handlers.DeleteTask(database))
+			authorized.POST("/history", handlers.RecordHistory(database))
+		}
+	}
+
+	log.Printf("server running on %s", cfg.ServerAddr)
+	if err := r.Run(cfg.ServerAddr); err != nil {
+		log.Fatalf("server error: %v", err)
+	}
+}
+
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+		c.Next()
+	}
+}

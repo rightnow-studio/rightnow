@@ -1,0 +1,77 @@
+{
+  "app": {
+    "name": "此刻",
+    "tagline": "直接行动，无需等待"
+  },
+  "login": {
+    "title": "此刻",
+    "subtitle": "直接行动，无需等待",
+    "email": "邮箱",
+    "password": "密码",
+    "login": "登录",
+    "register": "注册",
+    "noAccount": "还没有账号？",
+    "hasAccount": "已有账号？"
+  },
+  "dispatch": {
+    "countdown": "{n}"
+  },
+  "mission": {
+    "done": "完成了",
+    "skip": "跳过",
+    "paused": "任务已暂停，返回后继续"
+  },
+  "victory": {
+    "title": "完成了",
+    "next": "继续",
+    "end": "结束"
+  },
+  "customTask": {
+    "title": "添加自定义任务",
+    "content": "任务内容",
+    "duration": "时长",
+    "category": "类别",
+    "save": "保存并加入任务池",
+    "hint": "保存后该任务将被纳入系统随机派发",
+    "placeholder": "写下你要做的第一件事..."
+  },
+  "categories": {
+    "work": "工作启动",
+    "home": "家务启动",
+    "communication": "沟通启动",
+    "health": "健康启动",
+    "admin": "行政启动"
+  },
+  "task": {
+    "open_first_desktop_file": "打开电脑桌面上从左数第一个文件",
+    "type_period_in_new_doc": "新建一个空白文档，在上面打一个句号",
+    "close_all_notifications": "关掉电脑上所有弹出的通知窗口",
+    "write_todays_date": "在纸上写下今天的日期",
+    "mark_first_email_read": "打开邮件客户端，把收件箱第一封邮件标为已读",
+    "move_three_files_to_folder": "把桌面上的三个文件选中，拖进一个新建文件夹",
+    "adjust_screen_brightness": "把电脑屏幕亮度调高或调低一格",
+    "close_first_browser_tab": "把浏览器里打开的第一个标签页关掉",
+    "put_nearest_clothes_in_washer": "把离你最近的一件脏衣服放进洗衣机",
+    "take_kitchen_trash_out": "把厨房垃圾袋拎到门口",
+    "smooth_blanket_and_pillow": "把被子铺平，枕头摆好",
+    "pick_up_socks_to_basket": "把脚边的袜子捡起来放进脏衣篮",
+    "lay_out_tomorrows_clothes": "把明天要穿的一套衣服平铺在床头",
+    "move_nearest_bowl_to_sink": "把桌上最靠近手边的一个碗拿到水槽里",
+    "fold_snack_bag_into_drawer": "把茶几上的零食袋折起来放进抽屉",
+    "pick_up_three_things_from_floor": "把地上离你最近的三样东西捡起来放好",
+    "send_period_to_first_contact": "给通讯录里第一个联系人发一个句号",
+    "send_emoji_to_top_chat": "打开微信，给置顶第一个人发一个表情",
+    "find_first_A_contact": "打开通讯录，翻到字母A开头的第一个人",
+    "clear_all_red_badges": "把手机上所有应用的红角标点掉",
+    "put_on_nearest_shoes_and_tiptoe": "穿上离你最近的一双鞋，站在原地踮脚三次",
+    "stretch_arms_overhead_five_times": "站起来，双手举过头顶，伸展五次",
+    "walk_to_nearest_window_look_out": "走到离你最近的窗户前，向外看十秒",
+    "pour_water_and_drink_three_sips": "倒一杯水，喝三口",
+    "flip_phone_screen_down": "把手机屏幕朝下扣在桌上",
+    "close_eyes_count_breaths_to_five": "闭上眼睛，数自己的呼吸，数到五",
+    "write_start_on_paper": "在纸上写下\"开始\"两个字",
+    "stack_top_three_papers": "把桌上最上面的三张纸叠整齐",
+    "take_out_and_put_back_cards": "把钱包里的所有卡片拿出来，再放回去",
+    "empty_bag_and_put_back": "把包里的东西全部倒出来，再放回去"
+  }
+}
