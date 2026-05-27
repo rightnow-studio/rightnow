@@ -16,7 +16,11 @@
   "dispatch": {
     "countdown": "{n}",
     "start": "开始",
-    "customTask": "添加自定义任务"
+    "customTask": "添加自定义任务",
+    "pullToStart": "下拉开始",
+    "swipeToChange": "右划换任务",
+    "releaseToStart": "松手开始任务",
+    "swipeReleaseToChange": "换一个"
   },
   "mission": {
     "done": "完成了",
@@ -28,6 +32,17 @@
     "next": "继续",
     "end": "结束"
   },
+  "profile": {
+    "title": "个人页",
+    "joined": "注册于 {date}",
+    "activity": "活跃统计",
+    "tasks": "次",
+    "less": "少",
+    "more": "多",
+    "history": "任务记录",
+    "empty": "暂无任务记录",
+    "loading": "加载中..."
+  },
   "customTask": {
     "title": "添加自定义任务",
     "content": "任务内容",
@@ -36,6 +51,14 @@
     "save": "保存并加入任务池",
     "hint": "保存后该任务将被纳入系统随机派发",
     "placeholder": "写下你要做的第一件事..."
+  },
+  "taskList": {
+    "title": "我的任务",
+    "empty": "暂无个人任务",
+    "activate": "启用",
+    "deactivate": "停用",
+    "delete": "删除",
+    "confirmDelete": "确定要删除这个任务吗？"
   },
   "durations": {
     "30": "30 秒",

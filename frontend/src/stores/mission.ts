@@ -39,6 +39,12 @@ export const useMissionStore = defineStore('mission', () => {
     }
   }
 
+  function setTask(task: Task) {
+    currentTask.value = task
+    timeLeft.value = task.duration_seconds
+    isRunning.value = false
+  }
+
   async function complete(outcome: 'completed' | 'skipped') {
     if (!currentTask.value) return
     await client.post('/history', { task_id: currentTask.value.id, outcome })
@@ -47,5 +53,5 @@ export const useMissionStore = defineStore('mission', () => {
     isRunning.value = false
   }
 
-  return { currentTask, timeLeft, isRunning, fetchTask, startTimer, stopTimer, tick, complete }
+  return { currentTask, timeLeft, isRunning, fetchTask, setTask, startTimer, stopTimer, tick, complete }
 })

@@ -21,7 +21,7 @@
     </select>
     <button class="btn-save" @click="handleSave">{{ t('customTask.save') }}</button>
     <p class="hint">{{ t('customTask.hint') }}</p>
-    <button class="btn-back" @click="router.push('/')">&larr; {{ t('common.back') }}</button>
+    <button class="btn-back" @click="router.replace('/')">&larr; {{ t('common.back') }}</button>
   </div>
 </template>
 
@@ -46,7 +46,7 @@ async function handleSave() {
       duration_seconds: duration.value,
       category: category.value,
     })
-    router.push('/')
+    router.replace('/')
   } catch (e) {
     const msg = (e as any).response?.data?.error || t('common.unknownError')
     alert(t('common.error', { msg }))

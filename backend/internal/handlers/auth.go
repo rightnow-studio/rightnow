@@ -85,6 +85,19 @@ func Login(db *sql.DB) gin.HandlerFunc {
 	}
 }
 
+func GetMe(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetString("user_id")
+		var user models.User
+		err := db.QueryRow("SELECT id, email, created_at FROM users WHERE id = ?", userID).Scan(&user.ID, &user.Email, &user.CreatedAt)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, user)
+	}
+}
+
 func RefreshToken(db *sql.DB) gin.HandlerFunc {
 	cfg := config.Load()
 	return func(c *gin.Context) {

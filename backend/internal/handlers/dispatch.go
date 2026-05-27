@@ -35,32 +35,70 @@ func DispatchTask(db *sql.DB) gin.HandlerFunc {
 			rows.Close()
 		}
 
-		query := `
+		// 查询用户个人任务（非预设）
+		customQuery := `
 			SELECT t.id, t.text_key, t.duration_seconds, t.category
 			FROM tasks t
-			LEFT JOIN user_task_pool utp ON t.id = utp.task_id AND utp.user_id = ?
-			WHERE (t.is_preset = TRUE OR utp.user_id = ?)
-			  AND t.is_active = TRUE
+			JOIN user_task_pool utp ON t.id = utp.task_id AND utp.user_id = ?
+			WHERE t.is_preset = FALSE AND t.is_active = TRUE
 		`
-		args := []interface{}{userID, userID}
+		customArgs := []interface{}{userID}
 		for _, rid := range recentIDs {
-			query += " AND t.id != ?"
-			args = append(args, rid)
+			customQuery += " AND t.id != ?"
+			customArgs = append(customArgs, rid)
 		}
 
-		rows, err = db.Query(query, args...)
+		// 查询系统预设任务
+		presetQuery := `
+			SELECT t.id, t.text_key, t.duration_seconds, t.category
+			FROM tasks t
+			WHERE t.is_preset = TRUE AND t.is_active = TRUE
+		`
+		presetArgs := []interface{}{}
+		for _, rid := range recentIDs {
+			presetQuery += " AND t.id != ?"
+			presetArgs = append(presetArgs, rid)
+		}
+
+		var customCandidates []DispatchResp
+		customRows, err := db.Query(customQuery, customArgs...)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		defer rows.Close()
+		for customRows.Next() {
+			var d DispatchResp
+			if err := customRows.Scan(&d.ID, &d.TextKey, &d.DurationSeconds, &d.Category); err == nil {
+				customCandidates = append(customCandidates, d)
+			}
+		}
+		customRows.Close()
+
+		var presetCandidates []DispatchResp
+		presetRows, err := db.Query(presetQuery, presetArgs...)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		for presetRows.Next() {
+			var d DispatchResp
+			if err := presetRows.Scan(&d.ID, &d.TextKey, &d.DurationSeconds, &d.Category); err == nil {
+				presetCandidates = append(presetCandidates, d)
+			}
+		}
+		presetRows.Close()
+
+		// 60% 概率优先派发个人任务
+		rand.Seed(time.Now().UnixNano())
+		useCustom := rand.Float64() < 0.6
 
 		var candidates []DispatchResp
-		for rows.Next() {
-			var d DispatchResp
-			if err := rows.Scan(&d.ID, &d.TextKey, &d.DurationSeconds, &d.Category); err == nil {
-				candidates = append(candidates, d)
-			}
+		if useCustom && len(customCandidates) > 0 {
+			candidates = customCandidates
+		} else if len(presetCandidates) > 0 {
+			candidates = presetCandidates
+		} else if len(customCandidates) > 0 {
+			candidates = customCandidates
 		}
 
 		if len(candidates) == 0 {
@@ -73,7 +111,6 @@ func DispatchTask(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		rand.Seed(time.Now().UnixNano())
 		selected := candidates[rand.Intn(len(candidates))]
 		c.JSON(http.StatusOK, selected)
 	}

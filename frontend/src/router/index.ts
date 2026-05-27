@@ -5,6 +5,8 @@ import DispatchView from '@/views/DispatchView.vue'
 import MissionView from '@/views/MissionView.vue'
 import VictoryView from '@/views/VictoryView.vue'
 import CustomTaskView from '@/views/CustomTaskView.vue'
+import ProfileView from '@/views/ProfileView.vue'
+import TaskListView from '@/views/TaskListView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -14,6 +16,8 @@ const router = createRouter({
     { path: '/mission', name: 'mission', component: MissionView },
     { path: '/victory', name: 'victory', component: VictoryView },
     { path: '/custom-task', name: 'custom-task', component: CustomTaskView },
+    { path: '/my-tasks', name: 'my-tasks', component: TaskListView },
+    { path: '/profile', name: 'profile', component: ProfileView },
   ],
 })
 

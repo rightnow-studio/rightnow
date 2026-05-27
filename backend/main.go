@@ -31,11 +31,14 @@ func main() {
 		authorized := api.Group("/")
 		authorized.Use(middleware.JWTAuth(cfg.JWTSecret))
 		{
+			authorized.GET("/me", handlers.GetMe(database))
 			authorized.GET("/dispatch", handlers.DispatchTask(database))
 			authorized.GET("/tasks", handlers.ListTasks(database))
 			authorized.POST("/tasks", handlers.CreateTask(database))
 			authorized.PATCH("/tasks/:id", handlers.UpdateTask(database))
 			authorized.DELETE("/tasks/:id", handlers.DeleteTask(database))
+			authorized.GET("/history", handlers.GetHistory(database))
+			authorized.GET("/history/stats", handlers.GetStats(database))
 			authorized.POST("/history", handlers.RecordHistory(database))
 		}
 	}
