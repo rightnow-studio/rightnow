@@ -40,6 +40,8 @@ func main() {
 			authorized.GET("/history", handlers.GetHistory(database))
 			authorized.GET("/history/stats", handlers.GetStats(database))
 			authorized.POST("/history", handlers.RecordHistory(database))
+			authorized.GET("/settings", handlers.GetSettings(database))
+			authorized.PUT("/settings", handlers.UpdateSettings(database))
 		}
 	}
 

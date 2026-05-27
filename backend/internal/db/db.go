@@ -58,6 +58,12 @@ func migrate(db *sql.DB) error {
 			FOREIGN KEY (user_id) REFERENCES users(id),
 			FOREIGN KEY (task_id) REFERENCES tasks(id)
 		);`,
+		`CREATE TABLE IF NOT EXISTS user_settings (
+			user_id TEXT PRIMARY KEY NOT NULL,
+			custom_task_ratio INTEGER NOT NULL DEFAULT 60 CHECK(custom_task_ratio >= 0 AND custom_task_ratio <= 100),
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		);`,
 	}
 	for _, stmt := range stmts {
 		if _, err := db.Exec(stmt); err != nil {

@@ -221,7 +221,10 @@ log_info "步骤 [3/5] 构建并部署前端..."
 cd "${FRONTEND_SRC}"
 
 log_info "  → 安装前端依赖..."
-npm ci
+if ! npm ci; then
+    log_warn "  → package-lock.json 与 package.json 不同步，尝试自动修复..."
+    npm install
+fi
 
 log_info "  → 生产构建..."
 npm run build

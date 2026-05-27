@@ -88,9 +88,14 @@ func DispatchTask(db *sql.DB) gin.HandlerFunc {
 		}
 		presetRows.Close()
 
-		// 60% 概率优先派发个人任务
+		// 读取用户自定义概率，默认 60%
+		var customRatio int
+		err = db.QueryRow("SELECT custom_task_ratio FROM user_settings WHERE user_id = ?", userID).Scan(&customRatio)
+		if err == sql.ErrNoRows {
+			customRatio = 60
+		}
 		rand.Seed(time.Now().UnixNano())
-		useCustom := rand.Float64() < 0.6
+		useCustom := rand.Float64() < float64(customRatio)/100.0
 
 		var candidates []DispatchResp
 		if useCustom && len(customCandidates) > 0 {

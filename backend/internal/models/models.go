@@ -37,3 +37,9 @@ type TaskHistory struct {
 	Outcome   string    `json:"outcome" db:"outcome"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
+
+type UserSettings struct {
+	UserID          string    `json:"user_id" db:"user_id"`
+	CustomTaskRatio int       `json:"custom_task_ratio" db:"custom_task_ratio"`
+	UpdatedAt       time.Time `json:"updated_at" db:"updated_at"`
+}
