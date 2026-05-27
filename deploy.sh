@@ -172,6 +172,10 @@ log_info "  → 编译后端二进制..."
 CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o cike-server -ldflags="-s -w" main.go
 
 log_info "  → 复制到部署目录..."
+# 如果服务正在运行，先停止再复制（避免 Text file busy）
+if systemctl is-active --quiet cike-backend 2>/dev/null; then
+    sudo systemctl stop cike-backend
+fi
 sudo cp cike-server "${BACKEND_DEPLOY}/"
 sudo chmod +x "${BACKEND_DEPLOY}/cike-server"
 
