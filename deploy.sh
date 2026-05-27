@@ -75,12 +75,14 @@ show_help() {
 
 选项:
   -h, --help       显示帮助信息
+  -u, --update     仅更新代码，不修改系统配置（适合日常代码更新）
   -s, --skip-deps  跳过依赖检查（加速重部署）
   -c, --clean      清理之前的构建产物后部署
   -d, --dry-run    仅检查环境，不执行部署
 
 示例:
-  ./deploy.sh              # 完整部署
+  ./deploy.sh              # 完整部署（首次部署使用）
+  ./deploy.sh --update     # 仅更新代码，保留系统配置
   ./deploy.sh --skip-deps  # 跳过依赖检查，快速部署
   ./deploy.sh --clean      # 清理后重新部署
 EOF
@@ -90,10 +92,12 @@ EOF
 SKIP_DEPS=false
 CLEAN_BUILD=false
 DRY_RUN=false
+UPDATE_MODE=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         -h|--help) show_help ;;
+        -u|--update) UPDATE_MODE=true; shift ;;
         -s|--skip-deps) SKIP_DEPS=true; shift ;;
         -c|--clean) CLEAN_BUILD=true; shift ;;
         -d|--dry-run) DRY_RUN=true; shift ;;
@@ -148,14 +152,18 @@ if [ "$CLEAN_BUILD" = true ]; then
     log_ok "构建产物已清理"
 fi
 
-# 创建部署目录
-log_info "创建部署目录..."
-sudo mkdir -p "${FRONTEND_DEPLOY}"
-sudo mkdir -p "${BACKEND_DEPLOY}"
-sudo mkdir -p /var/lib/cike
-sudo mkdir -p /var/log/cike
-sudo mkdir -p /var/log/caddy
-log_ok "部署目录已创建"
+# 创建部署目录（更新模式下跳过，假设已存在）
+if [ "$UPDATE_MODE" = false ]; then
+    log_info "创建部署目录..."
+    sudo mkdir -p "${FRONTEND_DEPLOY}"
+    sudo mkdir -p "${BACKEND_DEPLOY}"
+    sudo mkdir -p /var/lib/cike
+    sudo mkdir -p /var/log/cike
+    sudo mkdir -p /var/log/caddy
+    log_ok "部署目录已创建"
+else
+    log_info "更新模式：跳过部署目录创建"
+fi
 
 # ======================================
 # 步骤 1: 构建并部署后端
@@ -236,12 +244,14 @@ sudo cp -r dist/* "${FRONTEND_DEPLOY}/"
 log_ok "前端构建并部署完成"
 
 # ======================================
-# 步骤 4: 配置 systemd 服务
+# 步骤 4: 配置并启动 systemd 服务
 # ======================================
 echo ""
-log_info "步骤 [4/5] 配置 systemd 服务..."
 
-cat << 'EOF' | sudo tee /etc/systemd/system/cike-backend.service > /dev/null
+if [ "$UPDATE_MODE" = false ]; then
+    log_info "步骤 [4/5] 配置 systemd 服务..."
+
+    cat << 'EOF' | sudo tee /etc/systemd/system/cike-backend.service > /dev/null
 [Unit]
 Description=Cike Backend Server
 Documentation=https://github.com/suna0/cike
@@ -280,14 +290,18 @@ SyslogIdentifier=cike-backend
 WantedBy=multi-user.target
 EOF
 
-sudo systemctl daemon-reload
+    sudo systemctl daemon-reload
 
-# 启用服务（首次部署时）
-sudo systemctl enable cike-backend 2>/dev/null || true
+    # 启用服务（首次部署时）
+    sudo systemctl enable cike-backend 2>/dev/null || true
+    log_ok "systemd 服务配置完成"
+else
+    log_info "步骤 [4/5] 更新模式：跳过 systemd 配置，仅重启服务..."
+fi
 
 # 重启服务
 sudo systemctl restart cike-backend
-log_ok "后端服务已启动"
+log_ok "后端服务已重启"
 
 # 检查服务状态
 sleep 1
@@ -303,16 +317,18 @@ fi
 # 步骤 5: 配置 Caddy（如需要）
 # ======================================
 echo ""
-log_info "步骤 [5/5] 检查 Caddy 配置..."
 
-CADDYFILE="/etc/caddy/Caddyfile"
+if [ "$UPDATE_MODE" = false ]; then
+    log_info "步骤 [5/5] 检查 Caddy 配置..."
 
-if [ -f "$CADDYFILE" ] && grep -q "${DOMAIN}" "$CADDYFILE" 2>/dev/null; then
-    log_info "  → Caddy 配置已存在且包含域名，跳过配置"
-else
-    log_info "  → 配置 Caddyfile..."
+    CADDYFILE="/etc/caddy/Caddyfile"
 
-    cat << EOF | sudo tee "$CADDYFILE" > /dev/null
+    if [ -f "$CADDYFILE" ] && grep -q "${DOMAIN}" "$CADDYFILE" 2>/dev/null; then
+        log_info "  → Caddy 配置已存在且包含域名，跳过配置"
+    else
+        log_info "  → 配置 Caddyfile..."
+
+        cat << EOF | sudo tee "$CADDYFILE" > /dev/null
 # 全局选项
 {
     log {
@@ -354,26 +370,30 @@ ${DOMAIN} {
 }
 EOF
 
-    log_ok "Caddy 配置已生成"
-fi
+        log_ok "Caddy 配置已生成"
+    fi
 
-# 验证并重启 Caddy
-log_info "  → 验证 Caddy 配置..."
-if sudo caddy validate --config "$CADDYFILE" 2>/dev/null; then
-    log_ok "Caddy 配置验证通过"
+    # 验证并重启 Caddy
+    log_info "  → 验证 Caddy 配置..."
+    if sudo caddy validate --config "$CADDYFILE" 2>/dev/null; then
+        log_ok "Caddy 配置验证通过"
+    else
+        log_warn "Caddy 配置验证可能存在问题，继续尝试重载..."
+    fi
+
+    log_info "  → 重载 Caddy..."
+    sudo systemctl restart caddy || sudo systemctl start caddy
+
+    if systemctl is-active --quiet caddy; then
+        log_ok "Caddy 运行正常"
+    else
+        log_error "Caddy 启动失败，请检查日志:"
+        log_error "  sudo journalctl -u caddy -n 50 --no-pager"
+        exit 1
+    fi
 else
-    log_warn "Caddy 配置验证可能存在问题，继续尝试重载..."
-fi
-
-log_info "  → 重载 Caddy..."
-sudo systemctl restart caddy || sudo systemctl start caddy
-
-if systemctl is-active --quiet caddy; then
-    log_ok "Caddy 运行正常"
-else
-    log_error "Caddy 启动失败，请检查日志:"
-    log_error "  sudo journalctl -u caddy -n 50 --no-pager"
-    exit 1
+    log_info "步骤 [5/5] 更新模式：跳过 Caddy 配置检查"
+    log_info "  → Caddy 正在运行，前端文件已更新，无需重启"
 fi
 
 # ======================================
