@@ -5,10 +5,13 @@ import (
 )
 
 type Config struct {
-	ServerAddr   string
-	DatabaseURL  string
-	JWTSecret    string
+	ServerAddr    string
+	DatabaseURL   string
+	JWTSecret     string
 	RefreshSecret string
+	AdminSecret   string
+	AdminUsername string
+	AdminPassword string
 }
 
 func Load() *Config {
@@ -17,6 +20,9 @@ func Load() *Config {
 		DatabaseURL:   getEnv("DATABASE_URL", "cike.db"),
 		JWTSecret:     getEnv("JWT_SECRET", "change-me-in-production"),
 		RefreshSecret: getEnv("REFRESH_SECRET", "change-me-refresh"),
+		AdminSecret:   getEnv("ADMIN_SECRET", "change-me-admin"),
+		AdminUsername: getEnv("ADMIN_USERNAME", "admin"),
+		AdminPassword: getEnv("ADMIN_PASSWORD", "admin123"),
 	}
 }
 

@@ -1,5 +1,32 @@
 <template>
   <div class="profile-screen">
+    <!-- 临时用户绑定邮箱横幅 -->
+    <div v-if="user?.is_temp" class="guest-banner">
+      <div class="banner-hint">
+        <span>{{ t('profile.guestHint') }}</span>
+        <button class="btn-bind-toggle" @click="showBind = !showBind">{{ t('profile.bindEmail') }}</button>
+      </div>
+      <form v-if="showBind" class="bind-form" @submit.prevent="handleBind">
+        <input
+          v-model="bindEmailVal"
+          type="email"
+          class="bind-input"
+          :placeholder="t('login.email')"
+          required
+        />
+        <input
+          v-model="bindPasswordVal"
+          type="password"
+          class="bind-input"
+          :placeholder="t('login.password')"
+          required
+        />
+        <button type="submit" class="btn-bind-confirm" :disabled="binding">
+          {{ binding ? t('profile.loading') : t('profile.bindConfirm') }}
+        </button>
+      </form>
+    </div>
+
     <div class="profile-header">
       <div class="avatar">{{ avatarLetter }}</div>
       <div class="user-info">
@@ -68,11 +95,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getMe, getHistory } from '@/api/profile'
+import { useAuthStore } from '@/stores/auth'
+import { getMe, getHistory, bindEmail } from '@/api/profile'
 import type { User, HistoryItem } from '@/api/profile'
 
 const router = useRouter()
 const { t } = useI18n()
+const auth = useAuthStore()
 
 const user = ref<User | null>(null)
 const history = ref<HistoryItem[]>([])
@@ -81,7 +110,15 @@ const historyRef = ref<HTMLElement | null>(null)
 const displayLimit = ref(5)
 const loadingMore = ref(false)
 
-const avatarLetter = computed(() => user.value?.email?.[0]?.toUpperCase() ?? '?')
+const showBind = ref(false)
+const bindEmailVal = ref('')
+const bindPasswordVal = ref('')
+const binding = ref(false)
+
+const avatarLetter = computed(() => {
+  if (user.value?.is_temp) return '?'
+  return user.value?.email?.[0]?.toUpperCase() ?? '?'
+})
 
 const joinedDate = computed(() => {
   if (!user.value?.created_at) return ''
@@ -196,6 +233,23 @@ onMounted(async () => {
     console.error(e)
   }
 })
+
+async function handleBind() {
+  binding.value = true
+  try {
+    const result = await bindEmail(bindEmailVal.value, bindPasswordVal.value)
+    auth.setTokens(result.access_token, result.refresh_token)
+    user.value = await getMe()
+    showBind.value = false
+    bindEmailVal.value = ''
+    bindPasswordVal.value = ''
+  } catch (e: unknown) {
+    const err = e as { response?: { data?: { error?: string } } }
+    alert(t('common.error', { msg: err.response?.data?.error ?? t('common.unknownError') }))
+  } finally {
+    binding.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -467,5 +521,85 @@ onMounted(async () => {
 .btn-back:hover {
   border-color: #444;
   color: #aaa;
+}
+
+.guest-banner {
+  width: 100%;
+  max-width: 600px;
+  background: rgba(45, 212, 191, 0.08);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.banner-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.banner-hint span {
+  font-size: 13px;
+  color: #aaa;
+  line-height: 1.4;
+}
+
+.btn-bind-toggle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2dd4bf;
+  background: transparent;
+  border: 1px solid rgba(45, 212, 191, 0.4);
+  border-radius: 8px;
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.btn-bind-toggle:hover {
+  background: rgba(45, 212, 191, 0.1);
+}
+
+.bind-form {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bind-input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #f0f0f0;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.bind-input:focus {
+  outline: none;
+  border-color: rgba(45, 212, 191, 0.5);
+}
+
+.btn-bind-confirm {
+  width: 100%;
+  padding: 0.65rem;
+  background: #2dd4bf;
+  color: #0a0a0a;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-bind-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

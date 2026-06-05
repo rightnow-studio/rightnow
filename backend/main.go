@@ -19,6 +19,10 @@ func main() {
 		log.Fatalf("failed to init db: %v", err)
 	}
 
+	if err := db.SeedAdmin(database, cfg.AdminUsername, cfg.AdminPassword); err != nil {
+		log.Fatalf("failed to seed admin: %v", err)
+	}
+
 	r := gin.Default()
 	r.Use(corsMiddleware())
 
@@ -27,11 +31,13 @@ func main() {
 		api.POST("/auth/register", handlers.Register(database))
 		api.POST("/auth/login", handlers.Login(database))
 		api.POST("/auth/refresh", handlers.RefreshToken(database))
+		api.POST("/auth/guest", handlers.CreateGuest(database))
 
 		authorized := api.Group("/")
 		authorized.Use(middleware.JWTAuth(cfg.JWTSecret))
 		{
 			authorized.GET("/me", handlers.GetMe(database))
+			authorized.POST("/auth/bind", handlers.BindEmail(database))
 			authorized.GET("/dispatch", handlers.DispatchTask(database))
 			authorized.GET("/tasks", handlers.ListTasks(database))
 			authorized.POST("/tasks", handlers.CreateTask(database))
@@ -42,6 +48,23 @@ func main() {
 			authorized.POST("/history", handlers.RecordHistory(database))
 			authorized.GET("/settings", handlers.GetSettings(database))
 			authorized.PUT("/settings", handlers.UpdateSettings(database))
+		}
+	}
+
+	admin := r.Group("/admin")
+	{
+		admin.POST("/auth/login", handlers.AdminLogin(database, cfg.AdminSecret))
+
+		adminAuth := admin.Group("/")
+		adminAuth.Use(middleware.AdminJWTAuth(cfg.AdminSecret))
+		{
+			adminAuth.GET("/tasks", handlers.AdminListTasks(database))
+			adminAuth.POST("/tasks", handlers.AdminCreateTask(database))
+			adminAuth.PUT("/tasks/:id", handlers.AdminUpdateTask(database))
+			adminAuth.DELETE("/tasks/:id", handlers.AdminDeleteTask(database))
+			adminAuth.GET("/categories", handlers.AdminListCategories(database))
+			adminAuth.POST("/categories", handlers.AdminCreateCategory(database))
+			adminAuth.DELETE("/categories/:id", handlers.AdminDeleteCategory(database))
 		}
 	}
 

@@ -3,6 +3,7 @@ import client from './client'
 export interface User {
   id: string
   email: string
+  is_temp: boolean
   created_at: string
 }
 
@@ -33,5 +34,16 @@ export async function getHistory(): Promise<HistoryItem[]> {
 
 export async function getStats(): Promise<Stats> {
   const { data } = await client.get('/history/stats')
+  return data
+}
+
+export interface BindResp {
+  access_token: string
+  refresh_token: string
+  expires_in: number
+}
+
+export async function bindEmail(email: string, password: string): Promise<BindResp> {
+  const { data } = await client.post('/auth/bind', { email, password })
   return data
 }

@@ -89,7 +89,7 @@ func GetMe(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.GetString("user_id")
 		var user models.User
-		err := db.QueryRow("SELECT id, email, created_at FROM users WHERE id = ?", userID).Scan(&user.ID, &user.Email, &user.CreatedAt)
+		err := db.QueryRow("SELECT id, email, is_temp, created_at FROM users WHERE id = ?", userID).Scan(&user.ID, &user.Email, &user.IsTemp, &user.CreatedAt)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -123,6 +123,102 @@ func RefreshToken(db *sql.DB) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate tokens"})
 			return
 		}
+		c.JSON(http.StatusOK, TokenResp{AccessToken: access, RefreshToken: refresh, ExpiresIn: 900})
+	}
+}
+
+func CreateGuest(db *sql.DB) gin.HandlerFunc {
+	cfg := config.Load()
+	return func(c *gin.Context) {
+		id := uuid.NewString()
+		_, err := db.Exec("INSERT INTO users (id, email, password_hash, is_temp) VALUES (?, '', '', TRUE)", id)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create guest"})
+			return
+		}
+		access, refresh, err := middleware.GenerateTokens(id, cfg.JWTSecret, cfg.RefreshSecret)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate tokens"})
+			return
+		}
+		c.JSON(http.StatusCreated, TokenResp{AccessToken: access, RefreshToken: refresh, ExpiresIn: 900})
+	}
+}
+
+func BindEmail(db *sql.DB) gin.HandlerFunc {
+	cfg := config.Load()
+	return func(c *gin.Context) {
+		guestID := c.GetString("user_id")
+
+		var isTemp bool
+		if err := db.QueryRow("SELECT is_temp FROM users WHERE id = ?", guestID).Scan(&isTemp); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if !isTemp {
+			c.JSON(http.StatusForbidden, gin.H{"error": "only guest users can bind"})
+			return
+		}
+
+		var req struct {
+			Email    string `json:"email" binding:"required,email"`
+			Password string `json:"password" binding:"required,min=6"`
+		}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		var existingID, existingHash string
+		err := db.QueryRow("SELECT id, password_hash FROM users WHERE email = ?", req.Email).Scan(&existingID, &existingHash)
+
+		if err == sql.ErrNoRows {
+			// 全新邮箱：升级临时用户
+			hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash password"})
+				return
+			}
+			if _, err := db.Exec("UPDATE users SET email = ?, password_hash = ?, is_temp = FALSE WHERE id = ?", req.Email, string(hash), guestID); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			access, refresh, _ := middleware.GenerateTokens(guestID, cfg.JWTSecret, cfg.RefreshSecret)
+			c.JSON(http.StatusOK, TokenResp{AccessToken: access, RefreshToken: refresh, ExpiresIn: 900})
+			return
+		}
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// 邮箱已存在：验证密码后合并数据
+		if err := bcrypt.CompareHashAndPassword([]byte(existingHash), []byte(req.Password)); err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+			return
+		}
+
+		tx, err := db.Begin()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if _, err := tx.Exec("UPDATE task_history SET user_id = ? WHERE user_id = ?", existingID, guestID); err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if _, err := tx.Exec("DELETE FROM users WHERE id = ?", guestID); err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if err := tx.Commit(); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		access, refresh, _ := middleware.GenerateTokens(existingID, cfg.JWTSecret, cfg.RefreshSecret)
 		c.JSON(http.StatusOK, TokenResp{AccessToken: access, RefreshToken: refresh, ExpiresIn: 900})
 	}
 }

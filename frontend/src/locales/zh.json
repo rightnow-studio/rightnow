@@ -41,7 +41,10 @@
     "more": "多",
     "history": "任务记录",
     "empty": "暂无任务记录",
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "guestHint": "你正在使用临时账户，绑定邮箱后数据将永久保存",
+    "bindEmail": "绑定邮箱",
+    "bindConfirm": "确认绑定"
   },
   "customTask": {
     "title": "添加自定义任务",

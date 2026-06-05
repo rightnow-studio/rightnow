@@ -41,7 +41,10 @@
     "more": "More",
     "history": "History",
     "empty": "No task history yet",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "guestHint": "You're using a temporary account. Bind your email to save data permanently.",
+    "bindEmail": "Bind Email",
+    "bindConfirm": "Confirm"
   },
   "customTask": {
     "title": "Add Custom Task",

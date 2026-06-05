@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import axios from 'axios'
 import client from '@/api/client'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -32,9 +33,14 @@ export const useAuthStore = defineStore('auth', () => {
     setTokens(data.access_token, data.refresh_token)
   }
 
+  async function createGuest() {
+    const { data } = await axios.post('/api/auth/guest')
+    setTokens(data.access_token, data.refresh_token)
+  }
+
   function logout() {
     clearTokens()
   }
 
-  return { token, refreshToken, isLoggedIn, setTokens, clearTokens, login, register, logout }
+  return { token, refreshToken, isLoggedIn, setTokens, clearTokens, login, register, createGuest, logout }
 })

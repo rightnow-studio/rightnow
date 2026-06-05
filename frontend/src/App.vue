@@ -1,4 +1,5 @@
 <template>
+  <SplashScreen v-if="showSplash" @done="showSplash = false" />
   <router-view />
   <button
     v-if="showMyTasksBtn"
@@ -39,12 +40,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import SplashScreen from '@/components/SplashScreen.vue'
 
 const route = useRoute()
 const auth = useAuthStore()
+const showSplash = ref(true)
 
 const showProfileBtn = computed(() => {
   return auth.isLoggedIn && route.path !== '/profile' && route.path !== '/login' && route.path !== '/my-tasks'

@@ -3,8 +3,11 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
+	"golang.org/x/crypto/bcrypt"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/google/uuid"
 )
 
 func Init(dbPath string) (*sql.DB, error) {
@@ -25,10 +28,12 @@ func migrate(db *sql.DB) error {
 	stmts := []string{
 		`CREATE TABLE IF NOT EXISTS users (
 			id TEXT PRIMARY KEY,
-			email TEXT UNIQUE NOT NULL,
+			email TEXT NOT NULL DEFAULT '',
 			password_hash TEXT NOT NULL DEFAULT '',
+			is_temp BOOLEAN NOT NULL DEFAULT FALSE,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users(email) WHERE email != '';`,
 		`CREATE TABLE IF NOT EXISTS tasks (
 			id TEXT PRIMARY KEY,
 			text_key TEXT NOT NULL DEFAULT '',
@@ -70,7 +75,73 @@ func migrate(db *sql.DB) error {
 			return err
 		}
 	}
+	// 兼容旧库：新增 is_temp 列（已存在时忽略错误）
+	db.Exec("ALTER TABLE users ADD COLUMN is_temp BOOLEAN NOT NULL DEFAULT FALSE")
+	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users(email) WHERE email != ''")
+
+	// 新增 admin_users 和 task_categories 表
+	adminStmts := []string{
+		`CREATE TABLE IF NOT EXISTS admin_users (
+			id TEXT PRIMARY KEY,
+			username TEXT UNIQUE NOT NULL,
+			password_hash TEXT NOT NULL,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);`,
+		`CREATE TABLE IF NOT EXISTS task_categories (
+			id TEXT PRIMARY KEY,
+			name TEXT UNIQUE NOT NULL,
+			label_key TEXT NOT NULL,
+			is_active BOOLEAN NOT NULL DEFAULT TRUE
+		);`,
+	}
+	for _, stmt := range adminStmts {
+		if _, err := db.Exec(stmt); err != nil {
+			return err
+		}
+	}
+	if err := seedCategories(db); err != nil {
+		return err
+	}
 	return seedPresetTasks(db)
+}
+
+func seedCategories(db *sql.DB) error {
+	categories := []struct {
+		id, name, labelKey string
+	}{
+		{"cat_work", "work", "categories.work"},
+		{"cat_home", "home", "categories.home"},
+		{"cat_communication", "communication", "categories.communication"},
+		{"cat_health", "health", "categories.health"},
+		{"cat_admin", "admin", "categories.admin"},
+	}
+	for _, c := range categories {
+		db.Exec(
+			"INSERT OR IGNORE INTO task_categories (id, name, label_key) VALUES (?, ?, ?)",
+			c.id, c.name, c.labelKey,
+		)
+	}
+	return nil
+}
+
+// SeedAdmin 在数据库初始化后调用，需要传入 username 和 password
+func SeedAdmin(db *sql.DB, username, password string) error {
+	var count int
+	if err := db.QueryRow("SELECT COUNT(*) FROM admin_users WHERE username = ?", username).Scan(&count); err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(
+		"INSERT INTO admin_users (id, username, password_hash, created_at) VALUES (?, ?, ?, ?)",
+		uuid.New().String(), username, string(hash), time.Now(),
+	)
+	return err
 }
 
 func seedPresetTasks(db *sql.DB) error {

@@ -2,6 +2,7 @@ import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestCo
 
 interface RetryConfig extends InternalAxiosRequestConfig {
   _retry?: boolean
+  _guestRetry?: boolean
 }
 
 const client = axios.create({
@@ -34,6 +35,21 @@ client.interceptors.response.use(
         } catch {
           localStorage.removeItem('access_token')
           localStorage.removeItem('refresh_token')
+        }
+      }
+      // 无有效 token：自动创建临时用户
+      if (!original._guestRetry) {
+        original._guestRetry = true
+        try {
+          const { data } = await axios.post('/api/auth/guest')
+          localStorage.setItem('access_token', data.access_token)
+          localStorage.setItem('refresh_token', data.refresh_token)
+          // 同步更新 pinia store
+          const { useAuthStore } = await import('@/stores/auth')
+          useAuthStore().setTokens(data.access_token, data.refresh_token)
+          original.headers.Authorization = `Bearer ${data.access_token}`
+          return client(original)
+        } catch {
           window.location.href = '/login'
         }
       }
